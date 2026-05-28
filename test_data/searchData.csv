@@ -1,0 +1,3 @@
+from,to,depart,return,guests
+New York,Sydney,today,today+7,3
+Boston,Amsterdam,today+10,today+month,5
