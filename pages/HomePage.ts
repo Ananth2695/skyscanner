@@ -103,7 +103,6 @@ export class HomePage {
       (date.getMonth() - today.getMonth());
  
     const clicksNeeded = Math.max(0, monthsToAdvance - 1);
- 
     await this.page.waitForSelector('[role="grid"]', { timeout: 10000 });
   
     for (let i = 0; i < clicksNeeded; i++) {
@@ -111,6 +110,19 @@ export class HomePage {
       await nextBtn.waitFor({ state: 'visible', timeout: 5000 });
       await nextBtn.click();
       await this.page.waitForTimeout(300);
+    }
+ 
+    // validate the target month is visible in the UI
+    const targetMonth = date.toLocaleDateString('en-US', { month: 'long' });
+    const expectedPanelIndex = monthsToAdvance === 0 ? 0 : 1;
+    const visibleMonths = await this.page
+      .locator('[class*="_MonthName_"]')
+      .allTextContents();
+    const actualMonth = visibleMonths[expectedPanelIndex]?.trim();
+    if (actualMonth !== targetMonth) {
+      throw new Error(
+        `Calendar navigation failed — expected "${targetMonth}" in panel ${expectedPanelIndex} but found "${actualMonth}" (all panels: "${visibleMonths.join(', ')}")`
+      );
     }
   }
 
