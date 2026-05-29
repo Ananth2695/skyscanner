@@ -97,34 +97,20 @@ export class HomePage {
   }
 
   private async navigateCalendarToMonth(date: Date) {
-    const target = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
+    const today = new Date();
+    const monthsToAdvance =
+      (date.getFullYear() - today.getFullYear()) * 12 +
+      (date.getMonth() - today.getMonth());
+ 
+    const clicksNeeded = Math.max(0, monthsToAdvance - 1);
+ 
     await this.page.waitForSelector('[role="grid"]', { timeout: 10000 });
-
-    for (let i = 0; i < 12; i++) {
-      const header = await this.page
-        .locator('[class*="BpkCalendarNav"] button + span, [class*="MonthHeader"]')
-        .first()
-        .textContent({ timeout: 5000 })
-        .catch(() => '');
-
-      if (header?.includes(target)) break;
-
-      const match = header?.match(/([A-Za-z]+)\s+(\d{4})/);
-      const current = match ? new Date(`${match[1]} 1, ${match[2]}`) : null;
-      const goForward = !current || current < date;
-
-      const navBtn = this.page.locator(
-        goForward ? 'button[aria-label="Next month"]' : 'button[aria-label="Previous month"]'
-      ).first();
-
-      try {
-        await navBtn.waitFor({ state: 'visible', timeout: 5000 });
-        await navBtn.click();
-        await this.page.waitForTimeout(400);
-      } catch {
-        break;
-      }
+  
+    for (let i = 0; i < clicksNeeded; i++) {
+      const nextBtn = this.page.locator('button[aria-label="Next month"]').first();
+      await nextBtn.waitFor({ state: 'visible', timeout: 5000 });
+      await nextBtn.click();
+      await this.page.waitForTimeout(300);
     }
   }
 
